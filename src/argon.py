@@ -2,7 +2,6 @@ import sys
 import argparse
 from typing import List
 
-import numpy as np
 from matplotlib import pyplot as plt
 
 import formulas
