@@ -18,3 +18,11 @@ def xyz_dump(filename: str, r: np.array):
         f.write(f'# comment\n')
         for i in range(len(r)):
             f.write(f'Ar {r[i][0]} {r[i][1]} {r[i][2]}\n')
+
+
+def xyz_append(filename: str, r: np.array):
+    with open(filename, 'a') as f:
+        f.write(f'\n{len(r)}\n')
+        f.write(f'# comment\n')
+        for i in range(len(r)):
+            f.write(f'Ar {r[i][0]} {r[i][1]} {r[i][2]}\n')
