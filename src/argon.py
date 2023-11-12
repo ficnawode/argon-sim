@@ -7,7 +7,7 @@ from progress.bar import Bar
 import tqdm
 
 import formulas
-from file_utils import json_load, xyz_dump, xyz_append
+from file_utils import json_load, xyz_write, xyz_append
 
 
 class ArgonSimulation():
@@ -19,16 +19,18 @@ class ArgonSimulation():
         self.show_plots = show_plots
 
     def run(self):
+
         with open(self.out_filepath, 'w') as fp:
-            fp.write("s, T, E, p\n")
+            fp.write("s, T, E, p, H\n")
         # initial conditions
         N = self.params['n']**3
         b_0, b_1, b_2 = formulas.b(self.params['a'])
         r = formulas.r(self.params['n'], b_0, b_1, b_2)
+        # print(r)
         E = formulas.E(N, self.params['T_0'])
         P = formulas.P(N, self.params['m'], E)
 
-        xyz_dump('out.xyz', r)
+        xyz_write('out.xyz', r)
 
         if self.show_plots:
             plt.title('r')
@@ -79,7 +81,7 @@ class ArgonSimulation():
             P = formulas.P_advance(P, F, self.params['tau'])
             # modify displacement (18b)
             r = formulas.r_advance(
-                r, self.params['m'], p, self.params['tau'])
+                r, self.params['m'], P, self.params['tau'])
 
             # calculate V, F, p
             V = formulas.V(
@@ -96,11 +98,12 @@ class ArgonSimulation():
             V = formulas.V(
                 r, self.params['e'], self.params['R'], self.params['L'], self.params['f'])
             p = formulas.p(F_S, self.params['L'])
+            H = formulas.H(P, self.params['m'], V)
 
             if s % self.params['S_out'] == 0:
                 # save current values to file
                 with open(self.out_filepath, 'a') as fp:
-                    fp.write(f"{s}, {T}, {V}, {p}\n")
+                    fp.write(f"{s}, {T}, {V}, {p}, {H}\n")
                 pass
             if s % self.params['S_xyz'] == 0:
                 xyz_append(self.xyz_filepath, r)
