@@ -34,49 +34,13 @@ class ArgonSimulation():
 
         xyz_write('out.xyz', r)
 
-        # if self.show_plots:
-        #     plt.title('r')
-        #     plt.plot(r)
-        #     plt.show()
-
-        #     plt.title('E')
-        #     plt.plot(E)
-        #     plt.show()
-
-        #     plt.title('P')
-        #     plt.plot(P)
-        #     plt.show()
-
-        #     plt.title('P')
-        #     plt.hist([p[0] for p in P], 20)
-        #     plt.hist([p[1] for p in P], 20)
-        #     plt.hist([p[2] for p in P], 20)
-        #     plt.show()
-
         V = formulas.V(
             r, self.params['e'], self.params['R'], self.params['L'], self.params['f'])
         print(f'\n\n\n V = {V}\n\n')
         F_S = formulas.F_S(r, self.params['L'], self.params['f'])
         F_P = formulas.F_P(r, self.params['e'], self.params['R'])
-        # print(F_P)
         F = F_S + F_P
-        # print(f'F_S={F_S}')
         p = formulas.p(F_S, self.params['L'])
-        # print(p)
-
-        # if self.show_plots:
-
-        #     plt.title('F_S')
-        #     plt.hist([f[0] for f in F_S], 20)
-        #     plt.hist([f[1] for f in F_S], 20)
-        #     plt.hist([f[2] for f in F_S], 20)
-        #     plt.show()
-
-        #     plt.title('F_P')
-        #     plt.hist([f[0] for f in F_P], 20)
-        #     plt.hist([f[1] for f in F_P], 20)
-        #     plt.hist([f[2] for f in F_P], 20)
-        #     plt.show()
 
         T_bar = 0
         P_bar = 0
