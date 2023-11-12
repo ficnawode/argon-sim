@@ -101,9 +101,9 @@ def V_P(r_i: np.array, r_j: np.array, epsilon: float, R: float) -> float:
 @njit('float64(float64[:], float64, float64)')
 def V_S(r_i: np.array, L: float, f: float) -> float:
     r_i_norm = np.linalg.norm(r_i)
-    res = f/2*(r_i_norm - L)**2
     if r_i_norm < L:
-        return res*0.0
+        return 0.0
+    res = f/2*(r_i_norm - L)**2
     return res
 
 
@@ -136,21 +136,20 @@ def _F_P_formula(r_i, r_j, epsilon, R):
     return 12*epsilon * ((R/r_ij)**12 - (R/r_ij)**6)*(r_i - r_j)/r_ij**2
 
 
-# @njit('float64[:](int32, float64[:,:], int32, float64, float64)')
+@njit('float64[:](int32, float64[:,:], int32, float64, float64)')
 def _F_P_sum(N, r, i, epsilon, R):
     F_P_sum = np.zeros(3, dtype=np.float64)
     for j in range(N):
         if i == j:
             continue
         F_P_sum += _F_P_formula(r[i], r[j], epsilon, R)
-        print(
-            f'F_P_sum={F_P_sum}, i = {i}, j = {j}, r_i = {r[i]}, r_j = {r[j]} ')
+        # print(
+        # f'F_P_sum={F_P_sum}, i = {i}, j = {j}, r_i = {r[i]}, r_j = {r[j]} ')
     return F_P_sum
 
+
 # (13)
-# @njit('float64[:,:](float64[:,:], float64, float64)')
-
-
+@njit('float64[:,:](float64[:,:], float64, float64)')
 def F_P(r, epsilon: float, R: float) -> np.array:
     N = len(r)
     F_P_array = np.zeros((N, 3), dtype=np.float64)
@@ -162,9 +161,9 @@ def F_P(r, epsilon: float, R: float) -> np.array:
 @njit('float64[:](float64[:], float64, float64)')
 def _F_S_formula(r_i: np.array, L: float, f: float):
     r_i_norm = np.linalg.norm(r_i)
-    res = f*(L-r_i_norm)*r_i/r_i_norm
     if r_i_norm < L:
-        return res*0
+        return np.array([0., 0., 0.])
+    res = f*(L-r_i_norm)*r_i/r_i_norm
     return res
 
 # (14)
@@ -175,6 +174,8 @@ def F_S(r: np.array, L: float, f: float) -> np.array:
     F_S_array = np.empty((len(r), 3))
     for i in range(len(r)):
         F_S_array[i] = _F_S_formula(r[i], L, f)
+        # print(
+        # f'F_S_array[i] = {F_S_array[i]}, r = {r[i]}, i = {i}, r_i_norm={np.linalg.norm(r[i])}')
     return F_S_array
 
 
@@ -207,15 +208,18 @@ def H(p: np.array, m: float, V: float):
 
 
 # (18a+c)
-# @njit
+@njit
 def P_advance(p: np.array, F: np.array, tau: float):
-    return p + F/2 * tau
+    p_new = p + F/2 * tau
+    # print(f'p_new = {p_new}')
+    return p_new
 
 
 # (18b)
-# @njit
+@njit
 def r_advance(r, m, p, tau):
     r_new = r + p/m * tau
+    # print(f'r={r_new}')
     return r_new
 
 
