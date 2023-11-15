@@ -9,7 +9,7 @@ import numba
 from numba.experimental import jitclass
 
 import formulas
-from file_utils import json_load, xyz_write, xyz_append
+from file_utils import json_load, xyz_write, xyz_append, json_dump
 from numba import njit
 
 config_spec = [
@@ -25,7 +25,7 @@ config_spec = [
     ("S_o", numba.int32),
     ("S_d", numba.int32),
     ("S_out", numba.int32),
-    ("S_xyz", numba.int64),
+    ("S_xyz", numba.int32),
 ]
 
 
@@ -37,7 +37,7 @@ class SimConfig(object):
         self.e = d['e']
         self.R = d['R']
         self.f = d['f']
-        self.L = d['L']
+        self.L = 1.23*d['a']*(d['n']-1)
         self.a = d['a']
         self.T_0 = d['T_0']
         self.tau = d['tau']
