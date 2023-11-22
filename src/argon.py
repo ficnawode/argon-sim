@@ -48,16 +48,17 @@ class SimConfig(object):
 
 
 class ArgonSimulation():
-    def __init__(self, params_filepath: str, xyz_filepath: str, out_filepath: str, show_plots):
+    def __init__(self, params_dict: dict, xyz_filepath: str, out_filepath: str, show_plots):
         # param keys: n, m, e, R, f, L, a, T_0, tau, S_o, S_d, S_out, S_xyz
+
         typed_config = numba.typed.Dict.empty(
             key_type=numba.types.unicode_type,
             value_type=numba.types.float64,
         )
-        json_config = json_load(params_filepath)
-        for key in json_config:
-            typed_config[key] = json_config[key]
+        for key in params_dict:
+            typed_config[key] = params_dict[key]
         self.params = SimConfig(typed_config)
+
         self.xyz_filepath = xyz_filepath
         self.out_filepath = out_filepath
         self.show_plots = show_plots
@@ -67,11 +68,10 @@ class ArgonSimulation():
 
         with open(self.out_filepath, 'w') as fp:
             fp.write("s, T, E, p, H\n")
-        # initial conditions
-        N = self.params.n**3
+
+        N = self.params.n*self.params.n*self.params.n
         b_0, b_1, b_2 = formulas.b(self.params.a)
         r = formulas.r(self.params.n, b_0, b_1, b_2)
-        # print(r)
         E = formulas.E(N, self.params.T_0)
         P = formulas.P(N, self.params.m, E)
 
@@ -85,9 +85,6 @@ class ArgonSimulation():
         F = F_S + F_P
         p = formulas.p(F_S, self.params.L)
 
-        T_bar = 0
-        P_bar = 0
-        H_bar = 0
         for s in tqdm.tqdm(range(self.params.S_o + self.params.S_d)):
             # modify momenta (18a)
             P = formulas.P_advance(P, F, self.params.tau)
@@ -95,9 +92,6 @@ class ArgonSimulation():
             r = formulas.r_advance(
                 r, self.params.m, P, self.params.tau)
 
-            # calculate V, F, p
-            V = formulas.V(
-                r, self.params.e, self.params.R, self.params.L, self.params.f)
             F_S = formulas.F_S(r, self.params.L, self.params.f)
             F_P = formulas.F_P(r, self.params.e, self.params.R)
             F = F_S + F_P
@@ -105,22 +99,19 @@ class ArgonSimulation():
             # modify momenta (18c)
             P = formulas.P_advance(P, F, self.params.tau)
 
-            # calculate T(19), E (16), P()
-            T = formulas.T(P, self.params.m)
-            V = formulas.V(
-                r, self.params.e, self.params.R, self.params.L, self.params.f)
-            p = formulas.p(F_S, self.params.L)
-            H = formulas.H(P, self.params.m, V)
-
             if s % self.params.S_out == 0:
+                # calculate T(19), E (16), P()
+                V = formulas.V(
+                    r, self.params.e, self.params.R, self.params.L, self.params.f)
+                T = formulas.T(P, self.params.m)
+                p = formulas.p(F_S, self.params.L)
+                H = formulas.H(P, self.params.m, V)
                 # save current values to file
                 with open(self.out_filepath, 'a') as fp:
                     fp.write(f"{s}, {T}, {V}, {p}, {H}\n")
-                pass
             if s % self.params.S_xyz == 0:
                 xyz_append(self.xyz_filepath, r)
                 # save coordinates to xyz file
-                pass
             if s > self.params.S_o == 0:
                 # accumulate values T P H
                 pass
@@ -166,6 +157,7 @@ def parse_args(args: List[str]):
 
 if __name__ == '__main__':
     args = parse_args(sys.argv[1:])
-    sim = ArgonSimulation(args.params, args.cordfile,
+    params_dict = json_load(args.params)
+    sim = ArgonSimulation(params_dict, args.cordfile,
                           args.outfile, args.showplots)
     sim.run()
